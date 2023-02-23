@@ -1,5 +1,6 @@
 const express = require("express")
-const router = express.Router()
+const router = express.Router();
+const {check, validationResult} = require("express-validator");
 
 // List of Users
 let users = [
@@ -21,7 +22,7 @@ let users = [
     }
 ]
 
-router.get("/", (req, res) => {
+router.get("/",  (req, res) => {
     res.json(users);
 })
 
@@ -30,4 +31,32 @@ router.get("/:id", (req, res) => {
     res.json(user);
 })
 
+router.use(express.urlencoded({ extended: true }));
+
+router.post("/", [check("name").not().isEmpty().trim()], async (req, res) => {
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()) {
+        res.json({error: errors.array()});
+    } else {
+        const newUser = req.body;
+        users.push(newUser);
+        res.send(users);
+    }
+
+    
+})
+
+router.put("/:id", (req, res) => {
+    let index = req.params.id - 1;
+    users[index].name = req.body.name;
+    users[index].age = req.body.age;
+    res.send(users);
+})
+
+router.delete("/:id", (req, res) => {
+    let index = req.params.id - 1;
+    users.splice(index, 1);
+    res.send(users);
+})
 module.exports = router;
